@@ -1,0 +1,22 @@
+# Ansible playbook to launch and configure simple service
+- name: Launch and configure simplegoservice
+  hosts: localhost
+  connection: local
+
+  vars:
+      health_delay: "1"     # set the env var HEALTH_DELAY within the server
+      version: "2.0"      # set the env var VERSION within the server
+      image: "registry.gitlab.com/alta3/simplegoservice:latest"
+
+  tasks:
+      - name: Launch docker container
+        community.docker.docker_container:
+            name: simplegoservice
+            image: "{{ image }}"
+            state: started
+            ports:
+              # Publish container port 9000 as host port 8080
+              - "9876:9876"
+            env:
+              VERSION: "{{ version }}"
+              HEALTH_DELAY: "{{ health_delay }}"

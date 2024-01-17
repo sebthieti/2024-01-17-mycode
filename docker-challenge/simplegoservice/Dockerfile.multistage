@@ -1,0 +1,35 @@
+##
+## Build
+##
+
+FROM golang:1.16-buster AS build
+
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY *.go ./
+
+RUN go build -o /dockergo
+# sometimes you'll see /go/bin/dockergo used. Anything will work as we will
+# inject the artifact into a scratch (empty)container
+
+##
+## Deploy
+##
+
+# this is a bit more than a scratch container
+# from google cloud repository get a minimal debian image
+FROM gcr.io/distroless/base-debian10
+
+WORKDIR /
+
+COPY --from=build /dockergo /dockergo
+
+EXPOSE 9876
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/dockergo"]
